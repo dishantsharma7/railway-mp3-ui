@@ -19,18 +19,39 @@ export default function Page() {
   const [duration, setDuration] = useState(playlist[0].duration)
   const [clatter, setClatter] = useState(false)
   const [chai, setChai] = useState(false)
+  const [controls, setControls] = useState<{ seek: (s: number) => void; playNext?: (vid: string, offset?: number) => void } | null>(null)
+  
+  const next = useCallback(() => { 
+    setIndex((current) => {
+      const nextIdx = (current + 1) % playlist.length
+      const nextTrack = playlist[nextIdx]
+      if (controls?.playNext) {
+        controls.playNext(nextTrack.youtubeId, nextTrack.offset)
+      }
+      return nextIdx
+    })
+    setCurrentTime(0) 
+  }, [controls])
+  
+  const previous = useCallback(() => { 
+    setIndex((current) => {
+      const prevIdx = (current - 1 + playlist.length) % playlist.length
+      const prevTrack = playlist[prevIdx]
+      if (controls?.playNext) {
+        controls.playNext(prevTrack.youtubeId, prevTrack.offset)
+      }
+      return prevIdx
+    })
+    setCurrentTime(0) 
+  }, [controls])
+  
   const [seek, setSeek] = useState<(seconds: number) => void>(() => () => undefined)
   const track = playlist[index]
-
-  const next = useCallback(() => { setIndex((current) => (current + 1) % playlist.length); setCurrentTime(0) }, [])
-  const previous = useCallback(() => { setIndex((current) => (current - 1 + playlist.length) % playlist.length); setCurrentTime(0) }, [])
+  
   const handleProgress = useCallback((current: number, total: number) => { setCurrentTime(current); if (total > 0) setDuration(total) }, [])
-  const handleReady = useCallback((controls: { seek: (seconds: number) => void }) => setSeek(() => controls.seek), [])
+  const handleReady = useCallback((c: any) => { setControls(c); setSeek(() => c.seek) }, [])
 
-  useEffect(() => {
-    setClatter(false)
-    setChai(false)
-  }, [index])
+
 
   return (
     <>

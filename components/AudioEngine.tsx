@@ -10,7 +10,7 @@ interface AudioEngineProps {
   volume: number
   onProgress: (current: number, duration: number) => void
   onPlayingChange: (playing: boolean) => void
-  onReady: (controls: { seek: (seconds: number) => void }) => void
+  onReady: (controls: { seek: (seconds: number) => void; playNext: (id: string, offset?: number) => void }) => void
   onError?: () => void
 }
 
@@ -27,7 +27,7 @@ export function AudioEngine({
   const [mounted, setMounted] = useState(false)
   const playerRef = useRef<YouTubePlayer>(null)
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
-
+  
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -67,6 +67,8 @@ export function AudioEngine({
     }, 1000)
   }, [onProgress, stopProgress])
 
+  const [initialVideoId] = useState(videoId)
+
   const handleReady = useCallback(
     (event: YouTubeEvent) => {
       playerRef.current = event.target
@@ -83,6 +85,16 @@ export function AudioEngine({
             playerRef.current.seekTo?.(seconds, true)
           }
         },
+        playNext: (vid: string, offset?: number) => {
+          if (playerRef.current) {
+            if (offset !== undefined) {
+              playerRef.current.loadVideoById({ videoId: vid, startSeconds: offset })
+            } else {
+              playerRef.current.loadVideoById(vid)
+            }
+            playerRef.current.playVideo?.()
+          }
+        }
       })
     },
     [volume, isPlaying, onReady]
@@ -98,8 +110,6 @@ export function AudioEngine({
       if (state === 0) {
         onPlayingChange(false)
       } else if (state === 2 && isPlaying) {
-        // If it pauses unexpectedly (e.g. Media Session API glitch when ambient sounds are paused),
-        // we should try to resume it.
         event.target?.playVideo?.()
       } else if ((state === -1 || state === 5) && isPlaying) {
         event.target?.playVideo?.()
@@ -122,24 +132,25 @@ export function AudioEngine({
     return <div style={{ position: 'fixed', top: '-9999px', left: '-9999px', width: '100px', height: '100px', pointerEvents: 'none', opacity: 0, overflow: 'hidden' }} />
   }
 
+  const staticOpts = {
+    width: '100%',
+    height: '100%',
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      playsinline: 1,
+      origin: typeof window !== 'undefined' ? window.location.origin : '',
+    },
+  }
+
   return (
     <div style={{ position: 'fixed', top: '-9999px', left: '-9999px', width: '100px', height: '100px', pointerEvents: 'none', opacity: 0, overflow: 'hidden' }}>
       <YouTube
-        videoId={videoId}
+        videoId={initialVideoId}
         onReady={handleReady}
         onStateChange={handleStateChange}
         onError={handleError}
-        opts={{
-          width: '100%',
-          height: '100%',
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            playsinline: 1,
-            origin: window.location.origin,
-            ...(startOffset !== undefined && { start: startOffset }),
-          },
-        }}
+        opts={staticOpts}
       />
     </div>
   )
@@ -163,11 +174,7 @@ export function AmbientAudio({ videoId, isPlaying, volume = 50 }: { videoId: str
         if (isPlaying) {
           playerRef.current.playVideo?.()
         } else {
-          // Delaying the pause command separates it from the main video's initialization
-          // which prevents the browser's Media Session API from accidentally pausing both.
-          setTimeout(() => {
-            playerRef.current?.pauseVideo?.()
-          }, 300)
+          playerRef.current.pauseVideo?.()
         }
       } catch (e) {
         // ignore errors on unready players
