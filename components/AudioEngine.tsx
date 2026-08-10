@@ -72,9 +72,7 @@ export function AudioEngine({
       playerRef.current = event.target
       playerRef.current?.setVolume?.(volume)
       if (isPlaying) {
-        setTimeout(() => {
-          playerRef.current?.playVideo?.()
-        }, 150)
+        playerRef.current?.playVideo?.()
       } else {
         playerRef.current?.pauseVideo?.()
       }
@@ -102,9 +100,9 @@ export function AudioEngine({
       } else if (state === 2 && isPlaying) {
         // If it pauses unexpectedly (e.g. Media Session API glitch when ambient sounds are paused),
         // we should try to resume it.
-        setTimeout(() => event.target?.playVideo?.(), 150)
+        event.target?.playVideo?.()
       } else if ((state === -1 || state === 5) && isPlaying) {
-        setTimeout(() => event.target?.playVideo?.(), 150)
+        event.target?.playVideo?.()
       }
     }
   }, [startProgress, stopProgress, onPlayingChange, isPlaying])
@@ -165,7 +163,11 @@ export function AmbientAudio({ videoId, isPlaying, volume = 50 }: { videoId: str
         if (isPlaying) {
           playerRef.current.playVideo?.()
         } else {
-          playerRef.current.pauseVideo?.()
+          // Delaying the pause command separates it from the main video's initialization
+          // which prevents the browser's Media Session API from accidentally pausing both.
+          setTimeout(() => {
+            playerRef.current?.pauseVideo?.()
+          }, 300)
         }
       } catch (e) {
         // ignore errors on unready players
