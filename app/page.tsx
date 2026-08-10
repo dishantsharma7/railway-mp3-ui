@@ -102,7 +102,7 @@ export default function Page() {
             </div>
           </header>
 
-          <div className="flex-1 flex items-end justify-center w-full px-4 sm:px-6 z-10 pb-6 sm:pb-8">
+          <div className="flex-1 flex items-end justify-center w-full px-4 sm:px-6 z-10 pb-4 sm:pb-8">
             <div className="glass-panel w-full max-w-lg sm:max-w-xl rounded-[3rem] sm:rounded-full p-3 sm:p-4 pr-5 sm:pr-6 flex flex-col sm:flex-row items-center sm:items-stretch gap-4 sm:gap-6 shadow-2xl">
               {/* Spinning Record */}
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-full overflow-hidden [transform:translateZ(0)]">
@@ -145,7 +145,7 @@ export default function Page() {
             </div>
           </div>
           
-          <div className="absolute bottom-4 right-6 sm:bottom-6 sm:right-10 z-20">
+          <div className="flex justify-center w-full pb-6 pt-2 sm:absolute sm:bottom-6 sm:right-10 sm:w-auto sm:pb-0 sm:pt-0 z-20">
             <Clock />
           </div>
         </main>
