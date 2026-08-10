@@ -72,7 +72,9 @@ export function AudioEngine({
       playerRef.current = event.target
       playerRef.current?.setVolume?.(volume)
       if (isPlaying) {
-        playerRef.current?.playVideo?.()
+        setTimeout(() => {
+          playerRef.current?.playVideo?.()
+        }, 150)
       } else {
         playerRef.current?.pauseVideo?.()
       }
@@ -90,15 +92,19 @@ export function AudioEngine({
 
   const handleStateChange = useCallback((event: YouTubeEvent) => {
     const state = event.data
-    // 1 is PLAYING, 0 is ENDED, -1 is UNSTARTED, 5 is CUED
+    // 1 is PLAYING, 0 is ENDED, -1 is UNSTARTED, 5 is CUED, 2 is PAUSED, 3 is BUFFERING
     if (state === 1) {
       startProgress()
     } else {
       stopProgress()
       if (state === 0) {
         onPlayingChange(false)
+      } else if (state === 2 && isPlaying) {
+        // If it pauses unexpectedly (e.g. Media Session API glitch when ambient sounds are paused),
+        // we should try to resume it.
+        setTimeout(() => event.target?.playVideo?.(), 150)
       } else if ((state === -1 || state === 5) && isPlaying) {
-        event.target?.playVideo?.()
+        setTimeout(() => event.target?.playVideo?.(), 150)
       }
     }
   }, [startProgress, stopProgress, onPlayingChange, isPlaying])
