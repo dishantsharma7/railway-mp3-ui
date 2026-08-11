@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+<div id="box" style="width: 100px; height: 100px; background: red; touch-action: none;"></div>
+<script>
+  const box = document.getElementById('box');
+  box.addEventListener('pointerdown', (e) => {
+    try {
+      box.setPointerCapture(e.pointerId);
+      console.log('Capture succeeded');
+    } catch (err) {
+      console.error('Capture failed', err);
+    }
+  });
+</script>
+</body>
+</html>

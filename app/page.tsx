@@ -18,7 +18,9 @@ export default function Page() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(playlist[0].duration)
   const [clatter, setClatter] = useState(false)
+  const [clatterVolume, setClatterVolume] = useState(80)
   const [chai, setChai] = useState(false)
+  const [chaiVolume, setChaiVolume] = useState(60)
   const [controls, setControls] = useState<{ seek: (s: number) => void; playNext?: (vid: string, offset?: number) => void } | null>(null)
   
   const next = useCallback(() => { 
@@ -59,8 +61,8 @@ export default function Page() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/70" />
       </div>
       <AudioEngine videoId={track.youtubeId} startOffset={track.offset} isPlaying={isPlaying} volume={volume} onProgress={handleProgress} onPlayingChange={setIsPlaying} onReady={handleReady} onError={next} />
-      <AmbientAudio videoId="lca-9fw9B8Y" isPlaying={clatter && isPlaying} volume={Math.min(volume * 0.8, 100)} />
-      <AmbientAudio videoId="KcAhQU5xXbU" isPlaying={chai && isPlaying} volume={Math.min(volume * 0.6, 100)} />
+      <AmbientAudio videoId="lca-9fw9B8Y" isPlaying={clatter && isPlaying} volume={clatterVolume} />
+      <AmbientAudio videoId="KcAhQU5xXbU" isPlaying={chai && isPlaying} volume={chaiVolume} />
       
       {!boarded ? (
         <main className="min-h-dvh flex items-center justify-center p-6 relative z-10">
@@ -98,7 +100,16 @@ export default function Page() {
             </div>
 
             <div className="z-10">
-              <AmbientSFX clatter={clatter} chai={chai} onClatter={() => setClatter((value) => !value)} onChai={() => setChai((value) => !value)} />
+              <AmbientSFX 
+                clatter={clatter} 
+                chai={chai} 
+                clatterVolume={clatterVolume}
+                chaiVolume={chaiVolume}
+                onClatter={() => setClatter((value) => !value)} 
+                onChai={() => setChai((value) => !value)}
+                onClatterVolume={setClatterVolume}
+                onChaiVolume={setChaiVolume}
+              />
             </div>
           </header>
 
